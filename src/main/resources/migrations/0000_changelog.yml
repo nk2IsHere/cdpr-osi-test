@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: classpath:/migrations/0001_create_user_entity.yml
+  - include:
+      file: classpath:/migrations/0002_create_game_entity.yml

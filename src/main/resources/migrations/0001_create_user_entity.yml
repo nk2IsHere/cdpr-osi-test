@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_user_table
+      author: Nikita Kozlov
+      changes:
+        - createTable:
+            tableName: user_entity
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: version
+                  type: bigint
+              - column:
+                  name: created_date
+                  type: datetime
+              - column:
+                  name: last_modified_date
+                  type: datetime
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(255)
+              - column:
+                  name: role
+                  type: varchar(255)
+  - changeSet:
+      id: add_indexes_to_user_entity_table
+      author: Nikita Kozlov
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: username
+            indexName: ix_user_entity_username
+            tableName: user_entity

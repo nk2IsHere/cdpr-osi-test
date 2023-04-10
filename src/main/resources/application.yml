@@ -1,0 +1,58 @@
+spring:
+  profiles:
+    active: dev
+---
+spring:
+  liquibase:
+    change-log: classpath:/migrations/0000_changelog.yml
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/cdprshop
+    username: postgres
+    password: dev
+  liquibase:
+    url: jdbc:postgresql://localhost:5432/cdprshop
+    user: postgres
+    password: dev
+
+cdprshop:
+  user:
+    default-system-user-username: system
+    default-system-user-password: system
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  r2dbc:
+    url: r2dbc:h2:mem:///cdprshop?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    name: sa
+    password:
+  liquibase:
+    url: jdbc:h2:mem:///cdprshop?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    user: sa
+    password:
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  r2dbc:
+    url: ${CDPRSHOP_DB_URL}
+    username: ${CDPRSHOP_DB_USERNAME}
+    password: ${CDPRSHOP_DB_PASSWORD}
+  liquibase:
+    url: ${CDPRSHOP_DB_URL}
+    user: ${CDPRSHOP_DB_USERNAME}
+    password: ${CDPRSHOP_DB_PASSWORD}
+
+cdprshop:
+  user:
+    default-system-user-username: ${CDPRSHOP_SYSTEM_USER_USERNAME}
+    default-system-user-password: ${CDPRSHOP_SYSTEM_USER_PASSWORD}
+  token:
+    token-expiration-millis: 604_800_000 # 1 week

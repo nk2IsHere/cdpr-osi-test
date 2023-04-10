@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_game_table
+      author: Nikita Kozlov
+      changes:
+        - createTable:
+            tableName: user_entity
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: version
+                  type: bigint
+              - column:
+                  name: created_date
+                  type: datetime
+              - column:
+                  name: last_modified_date
+                  type: datetime
+              - column:
+                  name: title
+                  type: text
+                  constraints:
+                    unique: true
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: genre
+                  type: varchar(255)

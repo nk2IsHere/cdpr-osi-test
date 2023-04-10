@@ -9,5 +9,4 @@ class CdprshopApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
