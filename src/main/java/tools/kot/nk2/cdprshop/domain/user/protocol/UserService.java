@@ -2,7 +2,6 @@ package tools.kot.nk2.cdprshop.domain.user.protocol;
 
 import lombok.NonNull;
 import lombok.With;
-import lombok.experimental.Accessors;
 import reactor.core.publisher.Mono;
 
 public interface UserService {
@@ -121,5 +120,18 @@ public interface UserService {
 
     record NotFoundUserCredentialsByIdUpdateResult(
     ) implements UserCredentialsByIdUpdateResult {
+    }
+
+    Mono<UserByIdDeleteResult> deleteUserById(Long id);
+
+    sealed interface UserByIdDeleteResult {
+    }
+
+    record OkUserByIdDeleteResult(
+    ) implements UserByIdDeleteResult {
+    }
+
+    record NotFoundUserByIdDeleteResult(
+    ) implements UserByIdDeleteResult {
     }
 }

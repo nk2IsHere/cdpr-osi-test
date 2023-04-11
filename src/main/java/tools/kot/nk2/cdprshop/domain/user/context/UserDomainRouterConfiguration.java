@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import tools.kot.nk2.cdprshop.domain.common.protocol.CommonSecurityWebFilterFactory;
 import tools.kot.nk2.cdprshop.domain.common.utils.ErrorDetailsResponse;
+import tools.kot.nk2.cdprshop.domain.common.utils.SuccessDetailsResponse;
 import tools.kot.nk2.cdprshop.domain.common.utils.WebUtils;
 import tools.kot.nk2.cdprshop.domain.user.protocol.User;
 import tools.kot.nk2.cdprshop.domain.user.protocol.UserService;
@@ -49,6 +50,11 @@ public class UserDomainRouterConfiguration {
                     "/api/user",
                     new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.POST)),
                     new CommonSecurityWebFilterFactory.SomeRoles(List.of(User.UserRole.SYSTEM, User.UserRole.ADMIN))
+                ),
+                new CommonSecurityWebFilterFactory.FilterConfiguration(
+                    "/api/user",
+                    new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.DELETE)),
+                    new CommonSecurityWebFilterFactory.SomeRoles(List.of(User.UserRole.SYSTEM))
                 ),
                 new CommonSecurityWebFilterFactory.FilterConfiguration(
                     "/api/user/credentials",
@@ -161,11 +167,32 @@ public class UserDomainRouterConfiguration {
                 })
         );
 
+        var userIdDeleteRoute = route(
+            DELETE("/api/user/{id}"),
+            request -> userService
+                .deleteUserById(Long.parseLong(request.pathVariable("id")))
+                .flatMap((result) -> switch (result) {
+                    case UserService.OkUserByIdDeleteResult okUserByIdDeleteResult -> ServerResponse
+                        .ok()
+                        .bodyValue(new SuccessDetailsResponse(
+                            HttpStatus.OK,
+                            "User deleted."
+                        ));
+                    case UserService.NotFoundUserByIdDeleteResult notFoundUserByIdDeleteResult -> ServerResponse
+                        .status(HttpStatus.NOT_FOUND)
+                        .bodyValue(new ErrorDetailsResponse(
+                            HttpStatus.NOT_FOUND,
+                            "User not found by id."
+                        ));
+                })
+        );
+
         return userAuthenticatePostRoute.filter(securityFilter)
             .and(userGetRoute.filter(securityFilter))
             .and(userPutRoute.filter(securityFilter))
             .and(userPostRoute.filter(securityFilter))
-            .and(userCredentialsPutRoute.filter(securityFilter));
+            .and(userCredentialsPutRoute.filter(securityFilter))
+            .and(userIdDeleteRoute.filter(securityFilter));
     }
 
     record UserAuthenticateRequest(

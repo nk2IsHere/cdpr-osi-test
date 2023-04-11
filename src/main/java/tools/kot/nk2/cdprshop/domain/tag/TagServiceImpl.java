@@ -2,11 +2,9 @@ package tools.kot.nk2.cdprshop.domain.tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import tools.kot.nk2.cdprshop.domain.tag.protocol.Tag;
 import tools.kot.nk2.cdprshop.domain.tag.protocol.TagService;
 
 import java.util.List;
@@ -63,5 +61,16 @@ public class TagServiceImpl implements TagService {
                     ? new OkTagsSaveResult(result)
                     : new DuplicatesFoundTagsSaveResult(result)
             );
+    }
+
+    @Override
+    public Mono<TagByIdDeleteResult> deleteTagById(Long id) {
+        return repository
+            .existsById(id)
+            .filter((exists) -> exists)
+            .flatMap((exists) -> repository.deleteById(id))
+            .thenReturn(new OkTagByIdDeleteResult())
+            .cast(TagByIdDeleteResult.class)
+            .defaultIfEmpty(new NotFoundTagByIdDeleteResult());
     }
 }

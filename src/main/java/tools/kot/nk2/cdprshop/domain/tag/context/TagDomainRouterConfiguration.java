@@ -10,13 +10,13 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import tools.kot.nk2.cdprshop.domain.common.protocol.CommonSecurityWebFilterFactory;
 import tools.kot.nk2.cdprshop.domain.common.utils.ErrorDetailsResponse;
+import tools.kot.nk2.cdprshop.domain.common.utils.SuccessDetailsResponse;
 import tools.kot.nk2.cdprshop.domain.tag.protocol.TagService;
 import tools.kot.nk2.cdprshop.domain.user.protocol.User;
 
 import java.util.List;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 @Configuration
@@ -41,7 +41,7 @@ public class TagDomainRouterConfiguration {
             .create(List.of(
                 new CommonSecurityWebFilterFactory.FilterConfiguration(
                     "/api/tag",
-                    new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.POST)),
+                    new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.POST, HttpMethod.DELETE)),
                     new CommonSecurityWebFilterFactory.SomeRoles(List.of(User.UserRole.SYSTEM, User.UserRole.ADMIN))
                 )
             ));
@@ -104,8 +104,29 @@ public class TagDomainRouterConfiguration {
                 })
         );
 
+        var tagIdDeleteRoute = route(
+            DELETE("/api/tag/{id}"),
+            request -> tagService
+                .deleteTagById(Long.parseLong(request.pathVariable("id")))
+                .flatMap((result) -> switch (result) {
+                    case TagService.OkTagByIdDeleteResult okTagByIdDeleteResult -> ServerResponse
+                        .ok()
+                        .bodyValue(new SuccessDetailsResponse(
+                            HttpStatus.OK,
+                            "Tag deleted."
+                        ));
+                    case TagService.NotFoundTagByIdDeleteResult notFoundTagByIdDeleteResult -> ServerResponse
+                        .status(HttpStatus.NOT_FOUND)
+                        .bodyValue(new ErrorDetailsResponse(
+                            HttpStatus.NOT_FOUND,
+                            "Tag not found by id."
+                        ));
+                })
+        );
+
         return tagGetRoute.filter(securityFilter)
             .and(tagIdGetRoute.filter(securityFilter))
-            .and(tagPostRoute.filter(securityFilter));
+            .and(tagPostRoute.filter(securityFilter))
+            .and(tagIdDeleteRoute.filter(securityFilter));
     }
 }

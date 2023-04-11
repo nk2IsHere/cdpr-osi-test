@@ -153,4 +153,15 @@ public class UserServiceImpl implements UserService {
             .cast(UserCredentialsByIdUpdateResult.class)
             .defaultIfEmpty(new NotFoundUserCredentialsByIdUpdateResult());
     }
+
+    @Override
+    public Mono<UserByIdDeleteResult> deleteUserById(Long id) {
+        return repository
+            .existsById(id)
+            .filter((exists) -> exists)
+            .flatMap((exists) -> repository.deleteById(id))
+            .thenReturn(new OkUserByIdDeleteResult())
+            .cast(UserByIdDeleteResult.class)
+            .defaultIfEmpty(new NotFoundUserByIdDeleteResult());
+    }
 }

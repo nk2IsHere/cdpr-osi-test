@@ -51,4 +51,17 @@ public interface TagService {
         List<Tag> tags
     ) implements TagsSaveResult {
     }
+
+    Mono<TagByIdDeleteResult> deleteTagById(Long id);
+
+    sealed interface TagByIdDeleteResult {
+    }
+
+    record OkTagByIdDeleteResult(
+    ) implements TagByIdDeleteResult {
+    }
+
+    record NotFoundTagByIdDeleteResult(
+    ) implements TagByIdDeleteResult {
+    }
 }
