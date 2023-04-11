@@ -36,8 +36,8 @@ public class UserDomainRouterConfiguration {
         this.securityWebFilterFactory = securityWebFilterFactory;
     }
 
-    @Bean
-    public RouterFunction<ServerResponse> router() {
+    @Bean("userRouter")
+    public RouterFunction<ServerResponse> userRouter() {
         var securityFilter = securityWebFilterFactory
             .create(List.of(
                 new CommonSecurityWebFilterFactory.FilterConfiguration(

@@ -7,6 +7,10 @@ import lombok.experimental.Accessors;
 import org.springframework.data.relational.core.mapping.Table;
 import tools.kot.nk2.cdprshop.domain.common.utils.BaseEntity;
 import tools.kot.nk2.cdprshop.domain.game.protocol.Game;
+import tools.kot.nk2.cdprshop.domain.tag.protocol.Tag;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Table
 @Getter
@@ -18,7 +22,9 @@ public class GameEntity extends BaseEntity<Game> {
 
     private String description;
 
-    private String genre;
+    private BigDecimal price;
+
+    private List<Tag> tags;
 
     @Override
     public Game toResource() {
@@ -26,7 +32,8 @@ public class GameEntity extends BaseEntity<Game> {
             id,
             title,
             description,
-            genre
+            price,
+            tags
         );
     }
 }

@@ -4,7 +4,7 @@ databaseChangeLog:
       author: Nikita Kozlov
       changes:
         - createTable:
-            tableName: user_entity
+            tableName: game_entity
             columns:
               - column:
                   name: id
@@ -24,11 +24,12 @@ databaseChangeLog:
               - column:
                   name: title
                   type: text
-                  constraints:
-                    unique: true
               - column:
                   name: description
                   type: text
               - column:
-                  name: genre
-                  type: varchar(255)
+                  name: price
+                  type: decimal
+              - column:
+                  name: tags
+                  type: json

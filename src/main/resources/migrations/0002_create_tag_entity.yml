@@ -1,0 +1,43 @@
+databaseChangeLog:
+  - changeSet:
+      id: create_tag_table
+      author: Nikita Kozlov
+      changes:
+        - createTable:
+            tableName: tag_entity
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: version
+                  type: bigint
+              - column:
+                  name: created_date
+                  type: datetime
+              - column:
+                  name: last_modified_date
+                  type: datetime
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    unique: true
+              - column:
+                  name: value
+                  type: varchar(255)
+  - changeSet:
+      id: add_indexes_to_tag_entity_table
+      author: Nikita Kozlov
+      changes:
+        - createIndex:
+            columns:
+              - column:
+                  name: type
+              - column:
+                  name: value
+            indexName: ix_tag_entity_type_value
+            tableName: tag_entity
