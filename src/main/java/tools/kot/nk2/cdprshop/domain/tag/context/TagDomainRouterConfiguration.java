@@ -41,7 +41,12 @@ public class TagDomainRouterConfiguration {
             .create(List.of(
                 new CommonSecurityWebFilterFactory.FilterConfiguration(
                     "/api/tag",
-                    new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.POST, HttpMethod.DELETE)),
+                    new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.POST)),
+                    new CommonSecurityWebFilterFactory.SomeRoles(List.of(User.UserRole.SYSTEM, User.UserRole.ADMIN))
+                ),
+                new CommonSecurityWebFilterFactory.FilterConfiguration(
+                    "/api/tag/{id}",
+                    new CommonSecurityWebFilterFactory.SomeMethods(List.of(HttpMethod.DELETE)),
                     new CommonSecurityWebFilterFactory.SomeRoles(List.of(User.UserRole.SYSTEM, User.UserRole.ADMIN))
                 )
             ));
@@ -61,7 +66,7 @@ public class TagDomainRouterConfiguration {
                             request
                                 .queryParam("page")
                                 .map(Integer::parseInt)
-                                .orElse(1)
+                                .orElse(0)
                         )
                 )
                 .flatMap((result) -> switch (result) {
@@ -91,16 +96,24 @@ public class TagDomainRouterConfiguration {
         var tagPostRoute = route(
             POST("/api/tag"),
             request -> request
-                .bodyToFlux(TagService.TagsSaveRequest.class)
-                .collectList()
-                .flatMap(tagService::saveTags)
+                .bodyToMono(TagService.TagCreateRequest.class)
+                .flatMap(tagService::createTag)
                 .flatMap((result) -> switch (result) {
-                    case TagService.OkTagsSaveResult okTagsSaveResult -> ServerResponse
+                    case TagService.OkTagCreateResult okTagsSaveResult -> ServerResponse
                         .ok()
-                        .bodyValue(okTagsSaveResult.tags());
-                    case TagService.DuplicatesFoundTagsSaveResult duplicatesFoundTagsSaveResult -> ServerResponse
+                        .bodyValue(okTagsSaveResult.tag());
+                    case TagService.DuplicateTagTagCreateResult duplicatesFoundTagsSaveResult -> ServerResponse
                         .badRequest()
-                        .bodyValue(duplicatesFoundTagsSaveResult.tags());
+                        .bodyValue(new ErrorDetailsResponse(
+                            HttpStatus.BAD_REQUEST,
+                            "Such tag already exists."
+                        ));
+                    case TagService.ValueEmptyTagCreateResult valueEmptyTagCreateResult -> ServerResponse
+                        .badRequest()
+                        .bodyValue(new ErrorDetailsResponse(
+                            HttpStatus.BAD_REQUEST,
+                            "Tag must not have empty value."
+                        ));
                 })
         );
 

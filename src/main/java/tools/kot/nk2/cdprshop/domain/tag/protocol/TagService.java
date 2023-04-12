@@ -31,25 +31,28 @@ public interface TagService {
     ) implements AllTagsFindResult {
     }
 
-    Mono<TagsSaveResult> saveTags(List<TagsSaveRequest> tags);
+    Mono<TagCreateResult> createTag(TagCreateRequest request);
 
-    record TagsSaveRequest(
+    record TagCreateRequest(
         @NonNull Tag.TagType type,
         @NonNull String value
     ) {
     }
 
-    sealed interface TagsSaveResult {
+    sealed interface TagCreateResult {
     }
 
-    record OkTagsSaveResult(
-        List<Tag> tags
-    ) implements TagsSaveResult {
+    record OkTagCreateResult(
+        Tag tag
+    ) implements TagCreateResult {
     }
 
-    record DuplicatesFoundTagsSaveResult(
-        List<Tag> tags
-    ) implements TagsSaveResult {
+    record DuplicateTagTagCreateResult(
+    ) implements TagCreateResult {
+    }
+
+    record ValueEmptyTagCreateResult(
+    ) implements TagCreateResult {
     }
 
     Mono<TagByIdDeleteResult> deleteTagById(Long id);
@@ -63,5 +66,20 @@ public interface TagService {
 
     record NotFoundTagByIdDeleteResult(
     ) implements TagByIdDeleteResult {
+    }
+
+    Mono<TagsByIdsFindResult> findTagsByIds(List<Long> ids);
+
+    sealed interface TagsByIdsFindResult {
+    }
+
+    record OkTagsByIdsFindResult(
+        List<Tag> tags
+    ) implements TagsByIdsFindResult {
+    }
+
+    record NotFoundTagsByIdsFindResult(
+        List<Tag> partialTags
+    ) implements TagsByIdsFindResult {
     }
 }

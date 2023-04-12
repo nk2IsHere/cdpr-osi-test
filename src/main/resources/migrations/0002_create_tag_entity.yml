@@ -24,8 +24,6 @@ databaseChangeLog:
               - column:
                   name: type
                   type: varchar(255)
-                  constraints:
-                    unique: true
               - column:
                   name: value
                   type: varchar(255)

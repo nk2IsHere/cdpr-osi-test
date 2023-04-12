@@ -3,7 +3,6 @@ package tools.kot.nk2.cdprshop.domain.tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import tools.kot.nk2.cdprshop.domain.tag.protocol.TagService;
 
@@ -38,29 +37,25 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
-    public Mono<TagsSaveResult> saveTags(List<TagsSaveRequest> tags) {
-        return Flux
-            .fromIterable(tags)
-            .filterWhen((tag) ->
-                repository
-                    .existsByTypeAndValue(tag.type(), tag.value())
-                    .map((exists) -> !exists)
-            )
-            .flatMap((tag) ->
-                repository
-                    .save(
-                        new TagEntity()
-                            .setType(tag.type())
-                            .setValue(tag.value())
+    public Mono<TagCreateResult> createTag(TagCreateRequest request) {
+        return repository
+            .existsByTypeAndValue(request.type(), request.value())
+            .filter((exists) -> !exists)
+            .flatMap((exists) ->
+                Mono.just(request.value().isEmpty())
+                    .filter((empty) -> !empty)
+                    .flatMap((empty) -> repository
+                        .save(
+                            new TagEntity()
+                                .setType(request.type())
+                                .setValue(request.value())
+                        )
                     )
+                    .map((tag) -> new OkTagCreateResult(tag.toResource()))
+                    .cast(TagCreateResult.class)
+                    .defaultIfEmpty(new ValueEmptyTagCreateResult())
             )
-            .map(TagEntity::toResource)
-            .collectList()
-            .map((result) ->
-                result.size() == tags.size()
-                    ? new OkTagsSaveResult(result)
-                    : new DuplicatesFoundTagsSaveResult(result)
-            );
+            .defaultIfEmpty(new DuplicateTagTagCreateResult());
     }
 
     @Override
@@ -72,5 +67,18 @@ public class TagServiceImpl implements TagService {
             .thenReturn(new OkTagByIdDeleteResult())
             .cast(TagByIdDeleteResult.class)
             .defaultIfEmpty(new NotFoundTagByIdDeleteResult());
+    }
+
+    @Override
+    public Mono<TagsByIdsFindResult> findTagsByIds(List<Long> ids) {
+        return repository
+            .findAllById(ids)
+            .map(TagEntity::toResource)
+            .collectList()
+            .map((result) ->
+                result.size() == ids.size()
+                    ? new OkTagsByIdsFindResult(result)
+                    : new NotFoundTagsByIdsFindResult(result)
+            );
     }
 }
