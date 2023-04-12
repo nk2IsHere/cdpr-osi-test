@@ -142,10 +142,23 @@ public class GameDomainRouterConfiguration {
                         ));
                 })
         );
+
+        var gameSearchPostRoute = route(
+            POST("/api/game/search"),
+            request -> request
+                .bodyToMono(GameService.GamesSearchRequest.class)
+                .flatMap(gameService::searchGames)
+                .flatMap((result) -> switch (result) {
+                    case GameService.OkGamesSearchResult okGamesSearchResult -> ServerResponse
+                        .ok()
+                        .bodyValue(okGamesSearchResult.games());
+                })
+        );
         
         return gameIdGetRoute.filter(securityFilter)
             .and(gamePostRoute.filter(securityFilter))
             .and(gameIdPutRoute.filter(securityFilter))
-            .and(gameIdDeleteRoute.filter(securityFilter));
+            .and(gameIdDeleteRoute.filter(securityFilter))
+            .and(gameSearchPostRoute.filter(securityFilter));
     }
 }

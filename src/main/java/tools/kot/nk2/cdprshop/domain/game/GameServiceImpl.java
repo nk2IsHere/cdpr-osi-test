@@ -2,11 +2,16 @@ package tools.kot.nk2.cdprshop.domain.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import tools.kot.nk2.cdprshop.domain.common.utils.ReactorUtils;
+import tools.kot.nk2.cdprshop.domain.common.utils.StreamUtils;
+import tools.kot.nk2.cdprshop.domain.game.protocol.Game;
 import tools.kot.nk2.cdprshop.domain.game.protocol.GameService;
 import tools.kot.nk2.cdprshop.domain.tag.protocol.TagService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -95,5 +100,28 @@ public class GameServiceImpl implements GameService {
                 .defaultIfEmpty(new TagsNotFoundGameByIdUpdateResult())
             )
             .defaultIfEmpty(new NotFoundGameByIdUpdateResult());
+    }
+
+    @Override
+    public Mono<GamesSearchResult> searchGames(GamesSearchRequest request) {
+        return Flux
+            .concat(
+                request.title() != null
+                    ? repository.searchByTitle(request.title())
+                    : Flux.fromIterable(List.of()),
+                request.description() != null
+                    ? repository.searchByDescription(request.description())
+                    : Flux.fromIterable(List.of())
+            )
+            .map(GameEntity::toResource)
+            .collectList()
+            .flatMap((results) ->
+                ReactorUtils.async(() -> results
+                    .stream()
+                    .filter(StreamUtils.distinctByKey(Game::id))
+                    .collect(Collectors.toList())
+                )
+            )
+            .map(OkGamesSearchResult::new);
     }
 }

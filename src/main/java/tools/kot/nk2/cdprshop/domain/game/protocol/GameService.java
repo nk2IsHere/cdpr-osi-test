@@ -2,6 +2,7 @@ package tools.kot.nk2.cdprshop.domain.game.protocol;
 
 import lombok.NonNull;
 import lombok.With;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
@@ -92,5 +93,21 @@ public interface GameService {
 
     record TitleOrDescriptionEmptyGameByIdUpdateResult(
     ) implements GameByIdUpdateResult {
+    }
+
+    Mono<GamesSearchResult> searchGames(GamesSearchRequest request);
+
+    record GamesSearchRequest(
+        String title,
+        String description
+    ) {
+    }
+
+    sealed interface GamesSearchResult {
+    }
+
+    record OkGamesSearchResult(
+        List<Game> games
+    ) implements GamesSearchResult {
     }
 }

@@ -32,4 +32,25 @@ databaseChangeLog:
                   type: decimal
               - column:
                   name: tags
-                  type: json
+                  type: jsonb
+  - changeSet:
+      id: add_ts_vectors_to_game_entity_table
+      author: Nikita Kozlov
+      changes:
+        - sql:
+            dbms: 'postgresql'
+            sql:
+              ALTER TABLE game_entity ADD COLUMN ts_title tsvector
+              GENERATED ALWAYS AS (to_tsvector('english', title)) STORED;
+      
+              ALTER TABLE game_entity ADD COLUMN ts_description tsvector
+              GENERATED ALWAYS AS (to_tsvector('english', description)) STORED;
+  - changeSet:
+      id: add_gin_indexes_to_game_entity_table
+      author: Nikita Kozlov
+      changes:
+        - sql:
+            dbms: 'postgresql'
+            sql:
+              CREATE INDEX ix_game_entity_ts_title ON game_entity USING GIN (ts_title);
+              CREATE INDEX ix_game_entity_ts_description ON game_entity USING GIN (ts_description);
