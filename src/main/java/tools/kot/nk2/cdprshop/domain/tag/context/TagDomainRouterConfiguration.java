@@ -1,11 +1,20 @@
 package tools.kot.nk2.cdprshop.domain.tag.context;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.models.info.Info;
+import org.springdoc.core.annotations.RouterOperation;
+import org.springdoc.core.annotations.RouterOperations;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import tools.kot.nk2.cdprshop.domain.common.protocol.CommonSecurityWebFilterFactory;
@@ -35,7 +44,75 @@ public class TagDomainRouterConfiguration {
         this.securityWebFilterFactory = securityWebFilterFactory;
     }
 
+    @Bean
+    public GroupedOpenApi tagOpenApi() {
+        return GroupedOpenApi
+            .builder()
+            .group("tag")
+            .addOpenApiCustomizer(openApi -> openApi
+                .info(
+                    new Info()
+                        .title("Tag Domain API")
+                )
+            )
+            .pathsToMatch("/api/tag/**")
+            .build();
+    }
+
     @Bean("tagRouter")
+    @RouterOperations({
+        @RouterOperation(
+            path = "/api/tag",
+            method = RequestMethod.GET,
+            beanClass = TagService.class,
+            beanMethod = "findAllTags",
+            operation = @Operation(
+                summary = "Get all tags",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "Tags found", content = @Content(schema = @Schema(implementation = TagService.OkAllTagsFindResult.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/tag/{id}",
+            method = RequestMethod.GET,
+            beanClass = TagService.class,
+            beanMethod = "findTagById",
+            operation = @Operation(
+                summary = "Get tag by ID",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "Tag found", content = @Content(schema = @Schema(implementation = TagService.OkTagByIdFindResult.class))),
+                    @ApiResponse(responseCode = "404", description = "Tag not found", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/tag",
+            method = RequestMethod.POST,
+            beanClass = TagService.class,
+            beanMethod = "createTag",
+            operation = @Operation(
+                summary = "Create tag",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "Tag created", content = @Content(schema = @Schema(implementation = TagService.OkTagCreateResult.class))),
+                    @ApiResponse(responseCode = "400", description = "Duplicate tag or empty value", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/tag/{id}",
+            method = RequestMethod.DELETE,
+            beanClass = TagService.class,
+            beanMethod = "deleteTagById",
+            operation = @Operation(
+                summary = "Delete tag by ID",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "Tag deleted", content = @Content(schema = @Schema(implementation = SuccessDetailsResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Tag not found", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        )
+    })
     public RouterFunction<ServerResponse> tagRouter() {
         var securityFilter = securityWebFilterFactory
             .create(List.of(

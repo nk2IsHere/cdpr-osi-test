@@ -5,6 +5,17 @@ spring:
 spring:
   liquibase:
     change-log: classpath:/migrations/0000_changelog.yml
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tagsSorter: alpha
+    use-root-path: true
+  cache:
+    disabled: true
 ---
 spring:
   config:

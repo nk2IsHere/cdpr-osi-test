@@ -1,6 +1,7 @@
 package tools.kot.nk2.cdprshop.domain.game;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -33,6 +34,15 @@ public class GameServiceImpl implements GameService {
             .map((game) -> new OkGameByIdFindResult(game.toResource()))
             .cast(GameByIdFindResult.class)
             .defaultIfEmpty(new NotFoundGameByIdFindResult());
+    }
+
+    @Override
+    public Mono<AllGamesFindResult> findAllGames(Pageable pageable) {
+        return repository
+            .findAllBy(pageable)
+            .map(GameEntity::toResource)
+            .collectList()
+            .map(OkAllGamesFindResult::new);
     }
 
     @Override

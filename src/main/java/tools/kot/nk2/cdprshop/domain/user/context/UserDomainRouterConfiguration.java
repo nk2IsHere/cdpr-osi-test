@@ -1,11 +1,21 @@
 package tools.kot.nk2.cdprshop.domain.user.context;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.models.info.Info;
 import lombok.NonNull;
+import org.springdoc.core.annotations.RouterOperation;
+import org.springdoc.core.annotations.RouterOperations;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -37,7 +47,103 @@ public class UserDomainRouterConfiguration {
         this.securityWebFilterFactory = securityWebFilterFactory;
     }
 
+    @Bean
+    public GroupedOpenApi userOpenApi() {
+        return GroupedOpenApi
+            .builder()
+            .group("user")
+            .addOpenApiCustomizer(openApi -> openApi
+                .info(
+                    new Info()
+                        .title("User Domain API")
+                )
+            )
+            .pathsToMatch("/api/user/**")
+            .build();
+    }
+
     @Bean("userRouter")
+    @RouterOperations({
+        @RouterOperation(
+            path = "/api/user/authenticate",
+            method = RequestMethod.POST,
+            beanClass = UserService.class,
+            beanMethod = "generateCredentials",
+            operation = @Operation(
+                summary = "Authenticate user",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "Successful authentication", content = @Content(schema = @Schema(implementation = UserService.NewCredentialsGenerateResult.class))),
+                    @ApiResponse(responseCode = "400", description = "Invalid credentials", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/user",
+            method = RequestMethod.GET,
+            beanClass = UserService.class,
+            beanMethod = "getUserById",
+            operation = @Operation(
+                summary = "Get user by ID",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "User found", content = @Content(schema = @Schema(implementation = User.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/user",
+            method = RequestMethod.PUT,
+            beanClass = UserService.class,
+            beanMethod = "updateUserInformationById",
+            operation = @Operation(
+                summary = "Update user information",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "User information updated", content = @Content(schema = @Schema(implementation = User.class))),
+                    @ApiResponse(responseCode = "400", description = "Duplicate username", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/user",
+            method = RequestMethod.POST,
+            beanClass = UserService.class,
+            beanMethod = "createUser",
+            operation = @Operation(
+                summary = "Create user",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "User created", content = @Content(schema = @Schema(implementation = User.class))),
+                    @ApiResponse(responseCode = "400", description = "Duplicate username", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/user/credentials",
+            method = RequestMethod.PUT,
+            beanClass = UserService.class,
+            beanMethod = "updateUserCredentialsById",
+            operation = @Operation(
+                summary = "Update user credentials",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "User credentials updated", content = @Content(schema = @Schema(implementation = User.class))),
+                    @ApiResponse(responseCode = "400", description = "Old password mismatch", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        ),
+        @RouterOperation(
+            path = "/api/user/{id}",
+            method = RequestMethod.DELETE,
+            beanClass = UserService.class,
+            beanMethod = "deleteUserById",
+            operation = @Operation(
+                summary = "Delete user by ID",
+                responses = {
+                    @ApiResponse(responseCode = "200", description = "User deleted", content = @Content(schema = @Schema(implementation = SuccessDetailsResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ErrorDetailsResponse.class)))
+                }
+            )
+        )
+    })
     public RouterFunction<ServerResponse> userRouter() {
         var securityFilter = securityWebFilterFactory
             .create(List.of(

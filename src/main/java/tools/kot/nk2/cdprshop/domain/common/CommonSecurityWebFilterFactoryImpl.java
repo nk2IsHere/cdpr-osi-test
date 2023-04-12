@@ -63,7 +63,7 @@ public class CommonSecurityWebFilterFactoryImpl implements CommonSecurityWebFilt
 
             return Mono
                 .justOrEmpty(token)
-                .map((value) -> value.replaceFirst("^Bearer", ""))
+                .map((value) -> value.replaceFirst("^Bearer ", ""))
                 .flatMap(userService::validateCredentials)
                 .flatMap((result) -> switch (result) {
                     case UserService.OkCredentialsValidateResult okCredentialsValidateResult -> {

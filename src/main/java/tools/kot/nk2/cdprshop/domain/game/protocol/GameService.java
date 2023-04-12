@@ -22,6 +22,16 @@ public interface GameService {
     record NotFoundGameByIdFindResult(
     ) implements GameByIdFindResult {
     }
+
+    Mono<AllGamesFindResult> findAllGames(Pageable pageable);
+
+    sealed interface AllGamesFindResult {
+    }
+
+    record OkAllGamesFindResult(
+        List<Game> games
+    ) implements AllGamesFindResult {
+    }
     
     Mono<GameCreateResult> createGame(GameCreateRequest request);
 
